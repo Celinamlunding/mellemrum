@@ -1,159 +1,217 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router";
-import { createRegistration } from "../lib/supabase";
+
+import { getEvent } from "../services/events";
+import { createRegistration } from "../services/registrations";
+import { getUserByEmail, createUser } from "../services/users";
+import { formatDate } from "../utils/formatDate";
 import Footer from "../components/Footer";
 import styles from "./EventPage.module.css";
 
-const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
-
-const headers = {
-  apikey: import.meta.env.VITE_SUPABASE_APIKEY,
-  "Content-Type": "application/json",
-};
-
+// Selve siden for et bestemt event
 export default function EventPage() {
+  // Henter eventets ID fra URL'en
+  // Fx hvis URL'en er /events/5, så er eventId = 5
   const { eventId } = useParams();
+
+  // Her gemmer vi det event vi henter fra Supabase
   const [event, setEvent] = useState(null);
+
+  // Her gemmer vi om eventet stadig bliver hentet
+  const [loading, setLoading] = useState(true);
+
+  // Her gemmer vi en fejlbesked hvis eventet ikke kan hentes
+  const [error, setError] = useState("");
+
+  // Her gemmer vi navn og mail brugeren skriver i formularen
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
 
+  // Her gemmer vi en besked til brugeren
+  // fx "Tilmelding sendt!"
+  const [message, setMessage] = useState("");
+
+  // Henter eventet når siden bliver åbnet
   useEffect(() => {
-    async function getEvent() {
-      const response = await fetch(`${SUPABASE_URL}/events?id=eq.${eventId}`, {
-        headers,
-      });
-
-      const data = await response.json();
-
-      setEvent(data[0]);
+    // Henter eventet fra Supabase
+    async function loadEvent() {
+      try {
+        const data = await getEvent(eventId);
+        // Gemmer eventet i state
+        setEvent(data);
+      } catch (error) {
+        // Gemmer fejlbeskeden i state
+        setError("Eventet kunne ikke hentes.");
+        console.error("Kunne ikke hente event:", error);
+      } finally {
+        // Stopper loading når hentningen er færdig
+        setLoading(false);
+      }
     }
 
-    getEvent();
+    // Kører funktionen
+    loadEvent();
+
+    // Hvis eventId ændrer sig, henter vi det nye event
   }, [eventId]);
 
+  // Det her sker når brugeren trykker på "Tilmeld mig"
   async function handleSubmit(eventSubmit) {
     eventSubmit.preventDefault();
 
-    const registration = {
-      name,
-      email,
-      status: "Ny",
-      eventTitle: event.title,
-      eventDate: event.date,
-      eventLocation: event.venueName,
-    };
+    const trimmedName = name.trim();
+    const trimmedEmail = email.trim();
+
+    if (!trimmedName || !trimmedEmail) {
+      setMessage("Udfyld navn og e-mail, før du tilmelder dig.");
+      return;
+    }
 
     try {
+      let user = await getUserByEmail(trimmedEmail);
+
+      if (!user) {
+        user = await createUser({ name: trimmedName, email: trimmedEmail });
+      }
+
+      if (!user || !user.id) {
+        throw new Error("Kunne ikke oprette eller finde bruger.");
+      }
+
+      const registration = {
+        name: user?.name || trimmedName,
+        userId: user.id,
+        eventId: event.id,
+        status: "Ny",
+      };
+
       await createRegistration(registration);
 
-      console.log("Tilmelding sendt!");
-
+      setMessage("Tak for din tilmelding! Din plads er reserveret.");
       setName("");
       setEmail("");
     } catch (error) {
+      setMessage("Der skete en fejl. Prøv igen.");
       console.error("Kunne ikke tilmelde:", error);
     }
   }
 
-  if (!event) {
-    return null;
+  // Hvis eventet ikke er hentet endnu, viser vi ikke siden
+  if (loading) {
+    return <p>Henter event...</p>;
   }
 
-  const date = new Date(event.date);
+  if (error) {
+    return <p>{error}</p>;
+  }
+
+  if (!event) {
+    return <p>Eventet blev ikke fundet.</p>;
+  }
 
   return (
     <>
-      <Link className={styles.backLink} to="/">
-        ← Alle events
-      </Link>
+      <main className={styles.eventPage}>
+        {/* Link tilbage til alle events */}
+        <Link className={styles.backLink} to="/">
+          ← Alle events
+        </Link>
 
-      <section className={styles.eventDetail}>
-        <img src={event.image} alt="" />
+        {/* Viser information om det valgte event */}
+        <section className={styles.eventDetail}>
+          {/* Eventets billede */}
+          <img src={event.image} alt="" />
 
-        <div className={styles.eventDetailContent}>
-          <p className={styles.eventCategory}>{event.category}</p>
+          <div className={styles.eventDetailContent}>
+            {/* Eventets kategori */}
+            <p className="event-category">{event.category}</p>
 
-          <h1>{event.title}</h1>
+            {/* Eventets titel */}
+            <h1>{event.title}</h1>
 
-          <p className={styles.lead}>{event.summary}</p>
+            {/* Den korte beskrivelse af eventet */}
+            <p className="lead">{event.summary}</p>
 
-          <div className={styles.detailList}>
+            {/* Her viser vi de vigtigste detaljer om eventet */}
+            <div className={styles.detailList}>
+              {/* Dato og tidspunkt */}
+              <p>
+                <strong>Dato</strong>
+                {formatDate(event.date)}
+              </p>
+
+              {/* Stedet hvor eventet foregår */}
+              <p>
+                <strong>Sted</strong>
+                <span>
+                  {event.venues?.name}
+                  <br />
+                  {event.venues?.address}, {event.venues?.postal_code}{" "}
+                  {event.venues?.city}
+                  {event.venues?.website && (
+                    <>
+                      <br />
+                      <a href={event.venues.website}>Besøg venue</a>
+                    </>
+                  )}
+                </span>
+              </p>
+              {/* Prisen på eventet */}
+              <p>
+                <strong>Pris</strong>
+
+                {/* Hvis prisen er 0, skriver vi "Gratis" */}
+                {event.price === 0 ? "Gratis" : `${event.price} kr.`}
+              </p>
+            </div>
+
+            {/* Den lange beskrivelse af eventet */}
+            <p>{event.description}</p>
+          </div>
+        </section>
+
+        {/* Formular hvor brugeren kan tilmelde sig */}
+        <section className={styles.signupPanel}>
+          <div>
+            {/* Lille overskrift over tilmeldingen */}
+            <p className="eyebrow dark">Tilmelding</p>
+
+            {/* Overskrift til formularen */}
+            <h2>Reserver din plads</h2>
+
             <p>
-              <strong>Dato</strong>
-              {date.toLocaleDateString("da-DK", {
-                weekday: "long",
-                day: "numeric",
-                month: "long",
-              })}{" "}
-              kl.{" "}
-              {date.toLocaleTimeString("da-DK", {
-                hour: "2-digit",
-                minute: "2-digit",
-              })}
-            </p>
-
-            <p>
-              <strong>Sted</strong>
-
-              <span>
-                {event.venueName}
-                <br />
-                {event.venueAddress}, {event.venuePostalCode} {event.venueCity}
-                {event.venueWebsite && (
-                  <>
-                    <br />
-
-                    <a href={event.venueWebsite}>Besøg venue</a>
-                  </>
-                )}
-              </span>
-            </p>
-
-            <p>
-              <strong>Pris</strong>
-
-              {event.price === 0 ? "Gratis" : `${event.price} kr.`}
+              Udfyld formularen, så sender vi din tilmelding til arrangøren.
             </p>
           </div>
 
-          <p>{event.description}</p>
-        </div>
-      </section>
+          {/* Når formularen bliver sendt, kører handleSubmit */}
+          <form onSubmit={handleSubmit}>
+            <label>
+              Navn
+              <input
+                value={name}
+                onChange={(inputEvent) => setName(inputEvent.target.value)}
+                required
+              />
+            </label>
 
-      <section className={styles.signupPanel}>
-        <div>
-          <p className={`${styles.eyebrow} ${styles.dark}`}>Tilmelding</p>
+            <label>
+              E-mail
+              <input
+                value={email}
+                onChange={(inputEvent) => setEmail(inputEvent.target.value)}
+                placeholder="dig@example.com"
+                required
+              />
+            </label>
 
-          <h2>Reserver din plads</h2>
+            <button type="submit">Tilmeld mig</button>
+          </form>
 
-          <p>Udfyld formularen, så sender vi din tilmelding til arrangøren.</p>
-        </div>
-
-        <form onSubmit={handleSubmit}>
-          <label>
-            Navn
-            <input
-              type="text"
-              value={name}
-              onChange={(inputEvent) => setName(inputEvent.target.value)}
-              required
-            />
-          </label>
-
-          <label>
-            E-mail
-            <input
-              type="email"
-              value={email}
-              onChange={(inputEvent) => setEmail(inputEvent.target.value)}
-              placeholder="dig@example.com"
-              required
-            />
-          </label>
-
-          <button type="submit">Tilmeld mig</button>
-        </form>
-      </section>
+          {/* Viser besked efter tilmelding */}
+          {message && <p className={styles.signupMessage}>{message}</p>}
+        </section>
+      </main>
       <Footer />
     </>
   );

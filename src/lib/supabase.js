@@ -1,6 +1,10 @@
+// Henter adressen til vores Supabase-projekt fra .env-filen
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
+
+// Henter vores API-nøgle fra .env-filen
 const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_APIKEY;
 
+// Tjekker om vi har fået de nødvendige oplysninger fra .env-filen
 function assertSupabaseConfig() {
   if (!SUPABASE_URL || !SUPABASE_KEY) {
     throw new Error(
@@ -9,22 +13,30 @@ function assertSupabaseConfig() {
   }
 }
 
+// Laver adressen til vores events-tabel
 function eventsUrl() {
   assertSupabaseConfig();
   return new URL(`${SUPABASE_URL}/events`);
 }
 
+// Laver adressen til vores registrations-tabel
 function registrationsUrl() {
   assertSupabaseConfig();
   return new URL(`${SUPABASE_URL}/registrations`);
 }
 
+// Laver adressen til vores users-tabel
+function usersUrl() {
+  assertSupabaseConfig();
+  return new URL(`${SUPABASE_URL}/users`);
+}
+
+// Denne funktion bruges til at sende og hente data fra Supabase
 async function request(url, options = {}) {
   assertSupabaseConfig();
 
   const response = await fetch(url, {
     ...options,
-
     headers: {
       apikey: SUPABASE_KEY,
       Authorization: `Bearer ${SUPABASE_KEY}`,
@@ -48,33 +60,5 @@ async function request(url, options = {}) {
   return text ? JSON.parse(text) : null;
 }
 
-// EVENTS
-
-export async function listEvents() {
-  const url = eventsUrl();
-
-  url.searchParams.set("order", "id.desc");
-
-  const data = await request(url);
-
-  return Array.isArray(data) ? data : [];
-}
-
-export async function getEvent(id) {
-  const url = eventsUrl();
-
-  url.searchParams.set("id", `eq.${id}`);
-
-  const data = await request(url);
-
-  return Array.isArray(data) ? (data[0] ?? null) : null;
-}
-
-// REGISTRATIONS
-
-export function createRegistration(registration) {
-  return request(registrationsUrl(), {
-    method: "POST",
-    body: JSON.stringify(registration),
-  });
-}
+// Gør funktionerne tilgængelige for events.js og registrations.js
+export { eventsUrl, registrationsUrl, usersUrl, request };
