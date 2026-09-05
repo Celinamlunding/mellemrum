@@ -1,25 +1,30 @@
 import { Link } from "react-router";
 import Footer from "../components/Footer";
+import styles from "./AboutPage.module.css";
+
 export default function AboutPage() {
   return (
     <>
-      <header className="page-header about-header">
-        <div className="about-header-content">
-          <p className="eyebrow">Om Mellemrum</p>
+      <header className={`${styles.pageHeader} ${styles.aboutHeader}`}>
+        <div className={styles.aboutHeaderContent}>
+          <p className={styles.eyebrow}>Om Mellemrum</p>
           <h1>Vi skaber mellemrum i kalenderen.</h1>
           <p>Udvalgte kulturoplevelser og nye perspektiver på Aarhus.</p>
         </div>
       </header>
-      <main className="about-page">
-        <section className="about-intro" aria-labelledby="about-intro-title">
+      <main className={styles.aboutPage}>
+        <section
+          className={styles.aboutIntro}
+          aria-labelledby="about-intro-title"
+        >
           <div>
-            <p className="eyebrow dark">Idéen</p>
+            <p className={`${styles.eyebrow} ${styles.dark}`}>Idéen</p>
             <h2 id="about-intro-title">
               En enkel vej til det, der sker tæt på.
             </h2>
           </div>
-          <div className="about-intro-copy">
-            <p className="lead">
+          <div className={styles.aboutIntroCopy}>
+            <p className={styles.lead}>
               Mellemrum samler koncerter, talks, workshops og fællesskaber, så
               du lettere kan opdage noget, du ikke allerede kendte.
             </p>
@@ -31,16 +36,16 @@ export default function AboutPage() {
         </section>
 
         <section
-          className="about-audiences"
+          className={styles.aboutAudiences}
           aria-labelledby="about-audiences-title"
         >
-          <div className="about-section-heading">
-            <p className="eyebrow">Målgrupper</p>
+          <div className={styles.aboutSectionHeading}>
+            <p className={styles.eyebrow}>Målgrupper</p>
             <h2 id="about-audiences-title">
               Mellemrum forbinder oplevelser med mennesker.
             </h2>
           </div>
-          <div className="about-audience-split">
+          <div className={styles.aboutAudienceSplit}>
             <article>
               <span>Primær målgruppe</span>
               <h3>For dig, der vil opdage byen</h3>
@@ -63,14 +68,16 @@ export default function AboutPage() {
         </section>
 
         <section
-          className="about-flow-section"
+          className={styles.aboutFlowSection}
           aria-labelledby="about-flow-title"
         >
-          <div className="about-section-heading">
-            <p className="eyebrow dark">Sådan hænger det sammen</p>
+          <div className={styles.aboutSectionHeading}>
+            <p className={`${styles.eyebrow} ${styles.dark}`}>
+              Sådan hænger det sammen
+            </p>
             <h2 id="about-flow-title">Fra idé til plads i kalenderen.</h2>
           </div>
-          <ol className="about-flow-list">
+          <ol className={styles.aboutFlowList}>
             <li>
               <span>01</span>
               <strong>Arrangører deler events</strong>
@@ -89,7 +96,10 @@ export default function AboutPage() {
           </ol>
         </section>
 
-        <section className="about-city" aria-labelledby="about-city-title">
+        <section
+          className={styles.aboutCity}
+          aria-labelledby="about-city-title"
+        >
           <figure>
             <img
               src="https://images.unsplash.com/photo-1532370778713-1400f3d62094?q=80&w=1600&auto=format&fit=crop&ixlib=rb-4.1.0"
@@ -98,13 +108,13 @@ export default function AboutPage() {
             <figcaption>Byrum, arkitektur og nye perspektiver.</figcaption>
           </figure>
           <div>
-            <p className="eyebrow dark">Aarhus tæt på</p>
+            <p className={`${styles.eyebrow} ${styles.dark}`}>Aarhus tæt på</p>
             <h2 id="about-city-title">Find plads til noget nyt.</h2>
             <p>
               Mellemrum peger på steder, idéer og fællesskaber på tværs af byen
               — fra små scener til store tanker.
             </p>
-            <Link className="about-cta" to="/">
+            <Link className={styles.aboutCta} to="/">
               Se kommende events →
             </Link>
           </div>
