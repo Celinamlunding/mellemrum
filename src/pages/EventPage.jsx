@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router";
 import { createRegistration } from "../lib/supabase";
 import Footer from "../components/Footer";
+import styles from "./EventPage.module.css";
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 
@@ -62,21 +63,21 @@ export default function EventPage() {
 
   return (
     <>
-      <Link className="back-link" to="/">
+      <Link className={styles.backLink} to="/">
         ← Alle events
       </Link>
 
-      <section className="event-detail">
+      <section className={styles.eventDetail}>
         <img src={event.image} alt="" />
 
-        <div className="event-detail-content">
-          <p className="event-category">{event.category}</p>
+        <div className={styles.eventDetailContent}>
+          <p className={styles.eventCategory}>{event.category}</p>
 
           <h1>{event.title}</h1>
 
-          <p className="lead">{event.summary}</p>
+          <p className={styles.lead}>{event.summary}</p>
 
-          <div className="detail-list">
+          <div className={styles.detailList}>
             <p>
               <strong>Dato</strong>
               {date.toLocaleDateString("da-DK", {
@@ -119,9 +120,9 @@ export default function EventPage() {
         </div>
       </section>
 
-      <section className="signup-panel">
+      <section className={styles.signupPanel}>
         <div>
-          <p className="eyebrow dark">Tilmelding</p>
+          <p className={`${styles.eyebrow} ${styles.dark}`}>Tilmelding</p>
 
           <h2>Reserver din plads</h2>
 
