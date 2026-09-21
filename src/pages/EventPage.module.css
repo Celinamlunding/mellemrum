@@ -142,3 +142,81 @@
     min-height: 380px;
   }
 }
+
+/* Skeleton loader styles */
+.skeleton {
+  opacity: 0.98;
+}
+
+.skeletonImage {
+  background: linear-gradient(90deg, #e9ecef 25%, #f6f7f8 50%, #e9ecef 75%);
+  background-size: 200% 100%;
+  min-height: 360px;
+  animation: shimmerPause 8s ease-in-out infinite;
+}
+
+.skeletonLine {
+  background: linear-gradient(90deg, #ececec 25%, #f6f6f6 50%, #ececec 75%);
+  background-size: 200% 100%;
+  height: 14px;
+  border-radius: 8px;
+  margin-bottom: 0.9rem;
+  animation: shimmerPause 8s ease-in-out infinite;
+}
+
+.skeletonShort {
+  width: 28%;
+  height: 12px;
+}
+
+.skeletonTitle {
+  width: 70%;
+  height: 44px;
+  margin: 0 0 1rem;
+}
+
+.skeletonLead {
+  width: 60%;
+  height: 20px;
+}
+
+.skeletonSignup .skeletonLine {
+  height: 12px;
+}
+
+/* Override signupPanel background for skeleton state so it isn't neon lime */
+.skeletonSignup {
+  background: white;
+}
+
+.skeletonInput {
+  background: #f2f2f2;
+  border-radius: 8px;
+  height: 48px;
+  margin-top: 0.5rem;
+  animation: shimmerPause 8s ease-in-out infinite;
+}
+
+.skeletonButton {
+  background: #e0e0e0;
+  border-radius: 8px;
+  height: 48px;
+  margin-top: 0.9rem;
+  width: 140px;
+  animation: shimmerPause 8s ease-in-out infinite;
+}
+
+@keyframes shimmerPause {
+  0% {
+    background-position: 200% 0;
+  }
+  20% {
+    background-position: 0 0;
+  }
+  80% {
+    background-position: 0 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
