@@ -35,6 +35,11 @@ export default function EventPage() {
   useEffect(() => {
     // Henter eventet fra Supabase
     async function loadEvent() {
+      // Minimumstid (ms) vi vil vise skeleton/loading for at brugeren kan nå at se den
+      const MIN_SKELETON_MS = 500;
+      const start = Date.now();
+      let timeoutId;
+
       try {
         const data = await getEvent(eventId);
         // Gemmer eventet i state
@@ -44,15 +49,29 @@ export default function EventPage() {
         setError("Eventet kunne ikke hentes.");
         console.error("Kunne ikke hente event:", error);
       } finally {
-        // Stopper loading når hentningen er færdig
-        setLoading(false);
+        // Beregn hvor lang tid der er gået og vent evt. tilbageværende tid
+        const elapsed = Date.now() - start;
+        const remaining = MIN_SKELETON_MS - elapsed;
+
+        if (remaining > 0) {
+          // Vent den resterende tid før vi stopper loading
+          timeoutId = setTimeout(() => setLoading(false), remaining);
+        } else {
+          setLoading(false);
+        }
       }
+
+      // Ryd op hvis komponenten unmountes inden timeout
+      return () => clearTimeout(timeoutId);
     }
 
     // Kører funktionen
-    loadEvent();
+    const cleanup = loadEvent();
 
     // Hvis eventId ændrer sig, henter vi det nye event
+    return () => {
+      if (typeof cleanup === "function") cleanup();
+    };
   }, [eventId]);
 
   // Det her sker når brugeren trykker på "Tilmeld mig"
@@ -98,7 +117,7 @@ export default function EventPage() {
 
   // Hvis eventet ikke er hentet endnu, viser vi ikke siden
   if (loading) {
-    return <p>Henter event...</p>;
+    return <Skeleton />;
   }
 
   if (error) {
@@ -214,5 +233,52 @@ export default function EventPage() {
       </main>
       <Footer />
     </>
+  );
+}
+
+// Simple skeleton loader for the Event page while loading
+function Skeleton() {
+  return (
+    <main className={styles.eventPage}>
+      <section className={`${styles.eventDetail} ${styles.skeleton}`}>
+        <div className={styles.skeletonImage} />
+
+        <div className={styles.eventDetailContent}>
+          <p className={`${styles.skeletonLine} ${styles.skeletonShort}`} />
+          <h1 className={`${styles.skeletonLine} ${styles.skeletonTitle}`} />
+          <p className={`${styles.skeletonLine} ${styles.skeletonLead}`} />
+
+          <div className={styles.detailList}>
+            <p className={styles.skeletonLine} />
+            <p className={styles.skeletonLine} />
+            <p className={styles.skeletonLine} />
+          </div>
+
+          <p className={styles.skeletonLine} />
+        </div>
+      </section>
+
+      <section className={`${styles.signupPanel} ${styles.skeletonSignup}`}>
+        <div>
+          <p className={`${styles.eyebrow} ${styles.skeletonLine}`} />
+          <h2 className={styles.skeletonLine} />
+          <p className={styles.skeletonLine} />
+        </div>
+
+        <form>
+          <label>
+            Navn
+            <div className={styles.skeletonInput} />
+          </label>
+
+          <label>
+            E-mail
+            <div className={styles.skeletonInput} />
+          </label>
+
+          <div className={styles.skeletonButton} />
+        </form>
+      </section>
+    </main>
   );
 }
