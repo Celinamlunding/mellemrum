@@ -116,6 +116,31 @@
   outline: none;
 }
 
+.inputError {
+  border: 2px solid #b7412d !important;
+  box-shadow: 0 0 0 4px rgba(183, 65, 45, 0.12) !important;
+  background: rgba(255, 255, 255, 0.75);
+}
+
+.inlineError {
+  color: #8a2f1f;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  margin-top: 0.35rem;
+  text-transform: none;
+}
+
+.formText {
+  color: var(--ink);
+  margin: 0;
+}
+
+.formTextError {
+  color: #8a2f1f;
+  font-weight: 800;
+}
+
 .signupPanel button {
   background: var(--green);
   border: 0;
@@ -130,6 +155,23 @@
 .signupPanel button:disabled {
   cursor: wait;
   opacity: 0.65;
+}
+
+.signupMessage {
+  border-radius: 10px;
+  font-weight: 600;
+  margin-top: 1rem;
+  padding: 0.8rem 1rem;
+}
+
+.successMessage {
+  background: rgba(23, 63, 53, 0.08);
+  color: var(--green);
+}
+
+.errorMessage {
+  background: rgba(165, 65, 44, 0.08);
+  color: #8e2d1f;
 }
 
 @media (max-width: 900px) {

@@ -27,9 +27,8 @@ export default function EventPage() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
 
-  // Her gemmer vi en besked til brugeren
-  // fx "Tilmelding sendt!"
-  const [message, setMessage] = useState("");
+  // Her gemmer vi en fejlbesked til e-mail feltet
+  const [emailError, setEmailError] = useState("");
 
   // Henter eventet når siden bliver åbnet
   useEffect(() => {
@@ -74,17 +73,57 @@ export default function EventPage() {
     };
   }, [eventId]);
 
+  function validateEmailField(value) {
+    const trimmedValue = value.trim();
+    const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+    if (!trimmedValue) {
+      setEmailError("Udfyld venligst en gyldig e-mailadresse.");
+      return false;
+    }
+
+    if (!emailPattern.test(trimmedValue)) {
+      setEmailError(
+        "E-mailadressen er ugyldig. Skriv den i formatet navn@eksempel.dk.",
+      );
+      return false;
+    }
+
+    setEmailError("");
+    return true;
+  }
+
   // Det her sker når brugeren trykker på "Tilmeld mig"
   async function handleSubmit(eventSubmit) {
     eventSubmit.preventDefault();
 
     const trimmedName = name.trim();
     const trimmedEmail = email.trim();
+    const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-    if (!trimmedName || !trimmedEmail) {
-      setMessage("Udfyld navn og e-mail, før du tilmelder dig.");
+    if (!trimmedName && !trimmedEmail) {
+      setEmailError("Udfyld venligst en gyldig e-mailadresse.");
       return;
     }
+
+    if (!trimmedName) {
+      setEmailError("");
+      return;
+    }
+
+    if (!trimmedEmail) {
+      setEmailError("Udfyld venligst en gyldig e-mailadresse.");
+      return;
+    }
+
+    if (!emailPattern.test(trimmedEmail)) {
+      setEmailError(
+        "E-mailadressen er ugyldig. Skriv den i formatet navn@eksempel.dk.",
+      );
+      return;
+    }
+
+    setEmailError("");
 
     try {
       let user = await getUserByEmail(trimmedEmail);
@@ -106,11 +145,9 @@ export default function EventPage() {
 
       await createRegistration(registration);
 
-      setMessage("Tak for din tilmelding! Din plads er reserveret.");
       setName("");
       setEmail("");
     } catch (error) {
-      setMessage("Der skete en fejl. Prøv igen.");
       console.error("Kunne ikke tilmelde:", error);
     }
   }
@@ -198,13 +235,13 @@ export default function EventPage() {
             {/* Overskrift til formularen */}
             <h2>Reserver din plads</h2>
 
-            <p>
+            <p className={styles.formText}>
               Udfyld formularen, så sender vi din tilmelding til arrangøren.
             </p>
           </div>
 
           {/* Når formularen bliver sendt, kører handleSubmit */}
-          <form onSubmit={handleSubmit}>
+          <form noValidate onSubmit={handleSubmit}>
             <label>
               Navn
               <input
@@ -217,18 +254,31 @@ export default function EventPage() {
             <label>
               E-mail
               <input
+                type="email"
                 value={email}
-                onChange={(inputEvent) => setEmail(inputEvent.target.value)}
+                onChange={(inputEvent) => {
+                  const nextValue = inputEvent.target.value;
+                  setEmail(nextValue);
+
+                  if (
+                    emailError &&
+                    nextValue.trim() &&
+                    /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(nextValue.trim())
+                  ) {
+                    setEmailError("");
+                  }
+                }}
+                onBlur={() => validateEmailField(email)}
                 placeholder="dig@example.com"
-                required
+                className={emailError ? styles.inputError : ""}
               />
+              {emailError && (
+                <span className={styles.inlineError}>{emailError}</span>
+              )}
             </label>
 
             <button type="submit">Tilmeld mig</button>
           </form>
-
-          {/* Viser besked efter tilmelding */}
-          {message && <p className={styles.signupMessage}>{message}</p>}
         </section>
       </main>
       <Footer />
