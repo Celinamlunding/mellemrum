@@ -1,11 +1,12 @@
-import { useEffect } from "react";
+import { Suspense, lazy, useEffect } from "react";
 import { Routes, Route, useLocation } from "react-router";
 import Navbar from "./components/Navbar";
-import HomePage from "./pages/HomePage";
-import AboutPage from "./pages/AboutPage";
-import EventPage from "./pages/EventPage";
-import RegistrationsPage from "./pages/RegistrationsPage";
-import NotFoundPage from "./pages/NotFoundPage";
+
+const HomePage = lazy(() => import("./pages/HomePage"));
+const AboutPage = lazy(() => import("./pages/AboutPage"));
+const EventPage = lazy(() => import("./pages/EventPage"));
+const RegistrationsPage = lazy(() => import("./pages/RegistrationsPage"));
+const NotFoundPage = lazy(() => import("./pages/NotFoundPage"));
 
 function ScrollToTop() {
   const { pathname } = useLocation();
@@ -22,13 +23,15 @@ export default function App() {
     <>
       <ScrollToTop />
       <Navbar />
-      <Routes>
-        <Route path="/" element={<HomePage />} />
-        <Route path="/events/:eventId" element={<EventPage />} />
-        <Route path="/om" element={<AboutPage />} />
-        <Route path="/tilmeldinger" element={<RegistrationsPage />} />
-        <Route path="*" element={<NotFoundPage />} />
-      </Routes>
+      <Suspense fallback={<div>Loading...</div>}>
+        <Routes>
+          <Route path="/" element={<HomePage />} />
+          <Route path="/events/:eventId" element={<EventPage />} />
+          <Route path="/om" element={<AboutPage />} />
+          <Route path="/tilmeldinger" element={<RegistrationsPage />} />
+          <Route path="*" element={<NotFoundPage />} />
+        </Routes>
+      </Suspense>
     </>
   );
 }
