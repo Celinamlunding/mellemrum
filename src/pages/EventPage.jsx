@@ -1,14 +1,10 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router";
 
-import { getEvent } from "../services/events";
-import {
-  createRegistration,
-  getRegistrationByUserAndEvent,
-} from "../services/registrations";
-import { getUserByEmail, createUser } from "../services/users";
-import { formatDate } from "../utils/formatDate";
+import EventRegistrationForm from "../components/EventRegistrationForm";
 import Footer from "../components/Footer";
+import { getEvent } from "../services/events";
+import { formatDate } from "../utils/formatDate";
 import styles from "./EventPage.module.css";
 
 // Selve siden for et bestemt event
@@ -25,13 +21,6 @@ export default function EventPage() {
 
   // Her gemmer vi en fejlbesked hvis eventet ikke kan hentes
   const [error, setError] = useState("");
-
-  // Her gemmer vi navn og mail brugeren skriver i formularen
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-
-  // Her gemmer vi en fejlbesked til e-mail feltet
-  const [emailError, setEmailError] = useState("");
 
   // Henter eventet når siden bliver åbnet
   useEffect(() => {
@@ -75,106 +64,6 @@ export default function EventPage() {
       if (typeof cleanup === "function") cleanup();
     };
   }, [eventId]);
-
-  function validateEmailField(value) {
-    const trimmedValue = value.trim();
-    const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-    if (!trimmedValue) {
-      setEmailError("Udfyld venligst en gyldig e-mailadresse.");
-      return false;
-    }
-
-    if (!emailPattern.test(trimmedValue)) {
-      setEmailError(
-        "E-mailadressen er ugyldig. Skriv den i formatet navn@eksempel.dk.",
-      );
-      return false;
-    }
-
-    setEmailError("");
-    return true;
-  }
-
-  // Det her sker når brugeren trykker på "Tilmeld mig"
-  async function handleSubmit(eventSubmit) {
-    eventSubmit.preventDefault();
-
-    const trimmedName = name.trim();
-    const trimmedEmail = email.trim();
-    const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-    if (!trimmedName && !trimmedEmail) {
-      setEmailError("Udfyld venligst en gyldig e-mailadresse.");
-      return;
-    }
-
-    if (!trimmedName) {
-      setEmailError("");
-      return;
-    }
-
-    if (!trimmedEmail) {
-      setEmailError("Udfyld venligst en gyldig e-mailadresse.");
-      return;
-    }
-
-    if (!emailPattern.test(trimmedEmail)) {
-      setEmailError(
-        "E-mailadressen er ugyldig. Skriv den i formatet navn@eksempel.dk.",
-      );
-      return;
-    }
-
-    setEmailError("");
-
-    try {
-      let user = await getUserByEmail(trimmedEmail);
-
-      if (!user) {
-        user = await createUser({ name: trimmedName, email: trimmedEmail });
-      }
-
-      if (!user || !user.id) {
-        throw new Error("Kunne ikke oprette eller finde bruger.");
-      }
-
-      const existingRegistration = await getRegistrationByUserAndEvent(
-        user.id,
-        event.id,
-      );
-
-      if (existingRegistration) {
-        setEmailError("Du er allerede tilmeldt dette event.");
-        return;
-      }
-
-      const registration = {
-        name: user?.name || trimmedName,
-        userId: user.id,
-        eventId: event.id,
-        status: "Ny",
-      };
-
-      await createRegistration(registration);
-
-      setName("");
-      setEmail("");
-    } catch (error) {
-      const message = String(error?.message ?? "");
-
-      if (
-        message.includes("duplicate") ||
-        message.includes("unique") ||
-        message.includes("registrations_user_event_unique")
-      ) {
-        setEmailError("Du er allerede tilmeldt dette event.");
-        return;
-      }
-
-      console.error("Kunne ikke tilmelde:", error);
-    }
-  }
 
   // Hvis eventet ikke er hentet endnu, viser vi ikke siden
   if (loading) {
@@ -253,64 +142,7 @@ export default function EventPage() {
           </div>
         </section>
 
-        {/* Formular hvor brugeren kan tilmelde sig */}
-        <section className={styles.signupPanel}>
-          <div>
-            {/* Lille overskrift over tilmeldingen */}
-            <p className="eyebrow dark">Tilmelding</p>
-
-            {/* Overskrift til formularen */}
-            <h2>Reserver din plads</h2>
-
-            <p className={styles.formText}>
-              Udfyld formularen, så sender vi din tilmelding til arrangøren.
-            </p>
-          </div>
-
-          {/* Når formularen bliver sendt, kører handleSubmit */}
-          <form noValidate onSubmit={handleSubmit}>
-            <label>
-              Navn
-              <input
-                value={name}
-                onChange={(inputEvent) => setName(inputEvent.target.value)}
-                required
-              />
-            </label>
-
-            <label>
-              E-mail
-              <input
-                type="email"
-                value={email}
-                onChange={(inputEvent) => {
-                  const nextValue = inputEvent.target.value;
-                  setEmail(nextValue);
-
-                  if (
-                    emailError &&
-                    nextValue.trim() &&
-                    /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(nextValue.trim())
-                  ) {
-                    setEmailError("");
-                  }
-                }}
-                onBlur={() => validateEmailField(email)}
-                placeholder="dig@example.com"
-                className={emailError ? styles.inputError : ""}
-                aria-invalid={emailError ? "true" : "false"}
-                aria-describedby={emailError ? "email-error" : undefined}
-              />
-              {emailError && (
-                <span id="email-error" className={styles.inlineError}>
-                  {emailError}
-                </span>
-              )}
-            </label>
-
-            <button type="submit">Tilmeld mig</button>
-          </form>
-        </section>
+        <EventRegistrationForm event={event} />
       </main>
       <Footer />
     </>
