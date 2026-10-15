@@ -2,7 +2,10 @@ import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router";
 
 import { getEvent } from "../services/events";
-import { createRegistration } from "../services/registrations";
+import {
+  createRegistration,
+  getRegistrationByUserAndEvent,
+} from "../services/registrations";
 import { getUserByEmail, createUser } from "../services/users";
 import { formatDate } from "../utils/formatDate";
 import Footer from "../components/Footer";
@@ -136,6 +139,16 @@ export default function EventPage() {
         throw new Error("Kunne ikke oprette eller finde bruger.");
       }
 
+      const existingRegistration = await getRegistrationByUserAndEvent(
+        user.id,
+        event.id,
+      );
+
+      if (existingRegistration) {
+        setEmailError("Du er allerede tilmeldt dette event.");
+        return;
+      }
+
       const registration = {
         name: user?.name || trimmedName,
         userId: user.id,
@@ -148,6 +161,17 @@ export default function EventPage() {
       setName("");
       setEmail("");
     } catch (error) {
+      const message = String(error?.message ?? "");
+
+      if (
+        message.includes("duplicate") ||
+        message.includes("unique") ||
+        message.includes("registrations_user_event_unique")
+      ) {
+        setEmailError("Du er allerede tilmeldt dette event.");
+        return;
+      }
+
       console.error("Kunne ikke tilmelde:", error);
     }
   }
