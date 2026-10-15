@@ -176,7 +176,10 @@ export default function EventPage() {
         {/* Viser information om det valgte event */}
         <section className={styles.eventDetail}>
           {/* Eventets billede */}
-          <img src={event.image} alt="" />
+          <img
+            src={event.image}
+            alt={`${event.title} - billedet illustrerer arrangementet`}
+          />
 
           <div className={styles.eventDetailContent}>
             {/* Eventets kategori */}
@@ -271,9 +274,13 @@ export default function EventPage() {
                 onBlur={() => validateEmailField(email)}
                 placeholder="dig@example.com"
                 className={emailError ? styles.inputError : ""}
+                aria-invalid={emailError ? "true" : "false"}
+                aria-describedby={emailError ? "email-error" : undefined}
               />
               {emailError && (
-                <span className={styles.inlineError}>{emailError}</span>
+                <span id="email-error" className={styles.inlineError}>
+                  {emailError}
+                </span>
               )}
             </label>
 
